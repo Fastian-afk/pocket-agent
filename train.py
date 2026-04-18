@@ -17,10 +17,9 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     TrainingArguments,
-    BitsAndBytesConfig,
 )
 from peft import LoraConfig, get_peft_model, TaskType
-from trl import SFTTrainer, SFTConfig
+from trl import SFTTrainer
 
 # ── Configuration ──────────────────────────────────────────────────────────
 BASE_MODEL = "HuggingFaceTB/SmolLM2-360M-Instruct"
@@ -62,7 +61,7 @@ def main():
     print("📦 Loading base model...")
     model = AutoModelForCausalLM.from_pretrained(
         BASE_MODEL,
-        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+        dtype=torch.float16 if device == "cuda" else torch.float32,
         device_map="auto" if device == "cuda" else None,
         trust_remote_code=True,
     )
@@ -107,7 +106,7 @@ def main():
 
     # ── Training Arguments ─────────────────────────────────────────────────
     print("\n🏋️ Setting up training...")
-    training_args = SFTConfig(
+    training_args = TrainingArguments(
         output_dir=OUTPUT_DIR,
         num_train_epochs=NUM_EPOCHS,
         per_device_train_batch_size=BATCH_SIZE,
@@ -124,9 +123,6 @@ def main():
         lr_scheduler_type="cosine",
         report_to="none",
         seed=42,
-        max_seq_length=MAX_SEQ_LEN,
-        packing=True,
-        dataset_text_field="text",
     )
 
     # ── Trainer ────────────────────────────────────────────────────────────
@@ -134,7 +130,10 @@ def main():
         model=model,
         args=training_args,
         train_dataset=dataset,
-        processing_class=tokenizer,
+        tokenizer=tokenizer,
+        max_seq_length=MAX_SEQ_LEN,
+        packing=True,
+        dataset_text_field="text",
     )
 
     # ── Train ──────────────────────────────────────────────────────────────
