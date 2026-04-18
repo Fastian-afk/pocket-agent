@@ -16,7 +16,7 @@ from typing import List, Dict, Optional
 # ── Configuration ──────────────────────────────────────────────────────────
 OUTPUT_FILE = "train_data.jsonl"
 PUBLIC_TEST_FILE = "public_test.jsonl"
-GEMINI_MODEL = "gemini-1.5-flash"
+GEMINI_MODEL = "gemini-2.0-flash"
 TARGET_COUNTS = {
     "single_turn": 1800,
     "multi_turn": 350,
@@ -610,9 +610,8 @@ def generate_refusal_examples(count: int) -> List[dict]:
 def enhance_with_gemini(examples: List[dict], api_key: str) -> List[dict]:
     """Use Gemini to generate additional diverse examples."""
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(GEMINI_MODEL)
+        from google import genai
+        client = genai.Client(api_key=api_key)
     except Exception as e:
         print(f"⚠ Gemini not available: {e}. Using template data only.")
         return examples
@@ -648,7 +647,7 @@ Output ONLY a JSON array.""",
     for i, prompt in enumerate(prompts):
         try:
             print(f"  Gemini batch {i+1}/{len(prompts)}...")
-            response = model.generate_content(prompt)
+            response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
             text = response.text.strip()
             # Extract JSON array
             match = re.search(r'\[.*\]', text, re.DOTALL)
