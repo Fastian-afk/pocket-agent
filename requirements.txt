@@ -1,0 +1,13 @@
+# === Core (needed for inference + demo) ===
+transformers>=4.40.0
+torch>=2.1.0
+gradio>=4.0.0
+
+# === Training (Colab T4 only) ===
+peft>=0.10.0
+trl>=0.8.0
+datasets>=2.18.0
+accelerate>=0.28.0
+
+# === Data Generation (local) ===
+google-generativeai>=0.5.0
